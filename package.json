@@ -3,15 +3,9 @@
   "description": "Conversion of zipped Keynote presentations to PDF. Runs only on Mac with Keynote installed (or just returns an error in a callback)",
   "version": "0.2.0",
   "main": "keynote2pdf.js",
-  "author": {
-    "name" : "Nuxeo",
-    "url" : "http://www.nuxeo.com/"
-  },
+  "author": "Nuxeo (http://www.nuxeo.com/)",
   "contributors": [
-    {
-      "name": "Thibaud Arguillere",
-      "email": "targuillere@nuxeo.com"
-    }
+    "Thibaud Arguillere <targuillere@nuxeo.com>"
   ],
   "homepage": "https://github.com/ThibArg/node-js-keynote2pdf",
   "repository": {
@@ -24,14 +18,19 @@
   "engines": {
     "node": ">= 0.10.0"
   },
-  "os" : [ "darwin" ],
+  "os": [
+    "darwin"
+  ],
   "dependencies": {
     "node-uuid": ">=1.4.1",
     "adm-zip": ">=0.4.4",
     "applescript": ">=0.2.1"
   },
-  "licenses" : [{
-    "type": "Apache",
-    "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
-  }]
+  "bugs": {
+    "url": "https://github.com/ThibArg/node-js-keynote2pdf/issues"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "license": "LGPL 2.1"
 }
