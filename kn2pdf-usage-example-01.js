@@ -13,7 +13,7 @@
 var http = require('http');
 var fs = require("fs"); // We handle files, don't we?
 var os = require("os"); // For storing the received zip in a temporary folder
-var keynote2pdf = require("./keynote2pdf.js");
+var keynote2pdf = require("keynote2pdf");
 
 // In this example, the server expects to receive only zipped files, there is
 // no handler to dispatch the request, etc.
