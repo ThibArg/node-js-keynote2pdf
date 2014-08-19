@@ -16,6 +16,10 @@
 	* Will work only on Mac OS, and only with Keynote
 	  installed
 	===================================================
+
+	Contributors:
+		Thibaud Arguillere
+			https://github.com/ThibArg
 */
 
 (function () {
@@ -146,40 +150,50 @@
 						});
 
 		pathToExtractionFolder = appendSlashIfNeeded( inInfos.folderPath );
-		zip = new AdmZip(inInfos.pathToFileToHandle);
-		// Notice: extractAllTo() is synchronous
-		zip.extractAllTo(pathToExtractionFolder, /*overwrite*/true);
+		try {
+			zip = new AdmZip(inInfos.pathToFileToHandle);
+			// Notice: extractAllTo() is synchronous
+			zip.extractAllTo(pathToExtractionFolder, /*overwrite*/true);
 
-		fs.readdir(pathToExtractionFolder, function(err, files) {
-			var keynoteFileName = "";
-			files.some(function(fileName) {
-				if(stringEndsWith(fileName, ".key")) {
-					keynoteFileName = fileName;
-					return true;
+			fs.readdir(pathToExtractionFolder, function(err, files) {
+				var keynoteFileName = "";
+				files.some(function(fileName) {
+					if(stringEndsWith(fileName, ".key")) {
+						keynoteFileName = fileName;
+						return true;
+					}
+					return false;
+				});
+				if(keynoteFileName !== "") {
+					// To handle the fact that several requests could ask to convert
+					// documents with the same name, and to avoid conflicts in
+					// Keynote, we use the UUID as name of the document so Keynote
+					// is not confused (actullay, it is more the AppleScript which
+					// would be confusing Keynote)
+					oldPath = pathToExtractionFolder + keynoteFileName;
+					newPath = pathToExtractionFolder + inInfos.uid + ".key";
+					fs.renameSync(oldPath, newPath);
+					inInfos.pathToFileToHandle = newPath;
+					doConvertAndReturnPDF(inInfos, inCallback);
+				} else {
+					console.log("Error: Can't find the .key file in the unzipped document");
+					inCallback(new Error("Can't find the .key file in the unzipped document"),
+								{ uid: inInfos.uid,
+								  errorLabel: "Can't find the .key file in the unzipped document",
+								});
+					// Mark ready for cleanup
+					inInfos.done = true;
 				}
-				return false;
 			});
-			if(keynoteFileName !== "") {
-				// To handle the fact that several requests could ask to convert
-				// documents with the same name, and to avoid conflicts in
-				// Keynote, we use the UUID as name of the document so Keynote
-				// is not confused (actullay, it is more the AppleScript which
-				// would be confusing Keynote)
-				oldPath = pathToExtractionFolder + keynoteFileName;
-				newPath = pathToExtractionFolder + inInfos.uid + ".key";
-				fs.renameSync(oldPath, newPath);
-				inInfos.pathToFileToHandle = newPath;
-				doConvertAndReturnPDF(inInfos, inCallback);
-			} else {
-				console.log("Error: Can't find the .key file in the unzipped document");
-				inCallback(new Error("Can't find the .key file in the unzipped document"),
-							{ uid: inInfos.uid,
-							  errorLabel: "Can't find the .key file in the unzipped document",
-							});
-				// Mark ready for cleanup
-				inInfos.done = true;
-			}
-		});
+		} catch (e) {
+			console.log("Error extracting the .zip "+ e);
+			inCallback(new Error("Error extracting the .zip "+ e),
+						{ uid: inInfos.uid,
+						  errorLabel: "Error extracting the .zip "+ e,
+						});
+			// Mark ready for cleanup
+			inInfos.done = true;
+		}
 	}
 
 	/*	doConvertAndReturnPDF
@@ -203,20 +217,30 @@
 		// We wait until the file is really here and valid
 		waitUntilFileExists(inInfos.pathToFileToHandle, 25, 40, function(result) {
 			if(result) {
-				applescript.execString(script, function(err, result) {
-					if(err) {
-						console.log("Conversion error: " + err);
-						inCallback(err,
-									{ uid: inInfos.uid,
-							 		  errorLabel: "Conversion error:" + err
-							 		});
-						// Mark ready for cleanup
-						inInfos.done = true;
-					} else {
-						inInfos.pathToFileToHandle = result;
-						doReturnThePDF(inInfos, inCallback);
-					}
-				});
+				try {
+					applescript.execString(script, function(err, result) {
+						if(err) {
+							console.log("Conversion error: " + err);
+							inCallback(err,
+										{ uid: inInfos.uid,
+								 		  errorLabel: "Conversion error:" + err
+								 		});
+							// Mark ready for cleanup
+							inInfos.done = true;
+						} else {
+							inInfos.pathToFileToHandle = result;
+							doReturnThePDF(inInfos, inCallback);
+						}
+					});
+				} catch (e) {
+					console.log("applescript.execString() error: "+ e);
+					inCallback(new Error("applescript.execString() error: "+ e),
+								{ uid: inInfos.uid,
+								  errorLabel: "applescript.execString() error: "+ e,
+								});
+					// Mark ready for cleanup
+					inInfos.done = true;
+				}
 			} else {
 				console.log("Can't find the keynote file at "+ inInfos.pathToFileToHandle);
 				inCallback(new Error("Can't find the keynote file at "+ inInfos.pathToFileToHandle),
@@ -498,10 +522,6 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * Contributors:
- *     Thibaud Arguillere
- *			https://github.com/ThibArg
  */
 
 // -- EOF--

@@ -1,7 +1,7 @@
 {
   "name": "keynote2pdf",
   "description": "Conversion of zipped Keynote presentations to PDF. Runs only on Mac with Keynote installed (or just returns an error in a callback)",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "main": "keynote2pdf.js",
   "author": "Nuxeo (http://www.nuxeo.com/)",
   "contributors": [
