@@ -9,7 +9,7 @@ A node.js module which receives a zipped Keynote presentation (a path to a zip f
   * [API](#api)
   * [Setup and Examples](#setup-and-examples)
   * [Interesting Information](#interesting-information)
-  * [License](#license)
+  * [License (MIT)](#license)
   * [About Nuxeo](#about-nuxeo)
 
 #### Two main points:
@@ -24,6 +24,12 @@ This module is quite simple: Receives a .zip, returns a .pdf. It assumes the .zi
 * Conversion:
   * Unzip the received file
   * Call an AppleScript to tell Keynote to export it to PDF
+    * **IMPORTANT**: Conversion to PDF is done with the following parameters (these are opetionnal parameters expected by Keynote):
+      *  `compression factor`: `0.3` (we want the final pdf to be small 
+      *  `export style`: `IndividualSlides` (one/page)
+      *  `all stages`: `true` (one slide/animation)
+      *  `skipped slides`: `false` (we don't want the skipped slides)
+    * Current version does not allow changing these parameters. If you want something else, then fork this code (or just duplicate it, whatever), and change the `kAPPLE_SCRIPT_TEMPLATE` variable in `node-js-keynote2pdf`.
   * Send back the pdf in the callback
   * (all this being done asynchronously)
 * Cleanup of the files (.key package, result .pdf) every 5 minutes by default
@@ -44,8 +50,8 @@ Modules to install on your node server:
     * Default value: 300000 (5 minutes)
   * `max_lifespan`
     * (Milliseconds)
-    * When you don't explicitely call canClean() after a succesful conversion, temporary files are not deleted. To void flooding the disk, files are deleted if they were created since more than max_lifespan.
-    * You must think about specific and probably rare usecase where either Keynote is very loaded, or a very, very big presentation is veing converted and the conversion takes a lot of time, so you want to avoid accidental removal of temporary file that is infact used. One hour seams to be good.
+    * When you don't explicitely call `canClean()` after a succesful conversion, temporary files are not deleted. To avoid flooding the disk, files are deleted if they were created since more than max_lifespan.
+    * You must think about specific and probably rare usecase where either Keynote is very loaded, or a very, very big presentation is being converted and the conversion takes a lot of time, so you want to avoid accidental removal of a temporary file that is infact used. One hour seams to be good.
     * Default value: 3600000 (one hour)
   * `debug`
     * More or less info messages in the console
@@ -68,12 +74,12 @@ Modules to install on your node server:
         * `step`: A string telling what is the current step (unzipping the file, converting, sending the pdf)
           * Possible values are "Unzipping the file", "Converting the file" and "Done"
           * Constants are provided: `keynote2pdf.k.STEP_UNZIP`, `keynote2pdf.k.STEP_CONVERT` and `keynote2pdf.k.STEP_DONE`
-        * `pdf`: Full path to the pdf, result of the conversion. This property is null as long as `step` id not `keynote2pdf.k.STEP_DONE`
+        * `pdf`: Full path to the pdf, result of the conversion. This property is null as long as `step` is not `keynote2pdf.k.STEP_DONE`
     * When an error occured:
       * `inError` is not `null` and its `message` field contains the description of the problem
       * ìnData` has the following properties:
         * `uid`: A unique (string) identifier, to easily identify misc. requests when several are handled concurrently
-        * `errorLabel`: As its name states. Very often, it will be the same as `inError.message`
+        * `errorLabel`: As its name states. Most of the time, it is the same as `inError.message`. Let's say it's here for future use.
 
 ### Setup and Examples
 * Run only on Mac OS. Was developed under Mavericks (Mac OS X.9.n)
@@ -88,7 +94,8 @@ Modules to install on your node server:
     npm install applescript
     ```
 
-* Well. Also install this module, `npm install keynote2pdf` 
+* Well. Also install this module, `npm install keynote2pdf`
+  * Actually, if you just need this module, you can install just it
 * See the `kn2pdf-usage-example-01.js` example to see how to use the module
 
 ### Interesting Information
@@ -101,15 +108,26 @@ This module was developed as part of [nuxeo-keynote](https://github.com/ThibArg/
 ```
 (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
  
-All rights reserved. This program and the accompanying materials
-are made available under the terms of the GNU Lesser General Public License
-(LGPL) version 2.1 which accompanies this distribution, and is available at
-http://www.gnu.org/licenses/lgpl-2.1.html
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation
+files (the "Software"), to deal in the Software without
+restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following
+conditions:
 
-This library is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-Lesser General Public License for more details.
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
 
 Contributors:
     Thibaud Arguillere (https://github.com/ThibArg)
